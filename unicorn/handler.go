@@ -3,28 +3,14 @@ package unicorn
 import (
 	"net/http"
 	"strconv"
-	"unicorn/utils"
+	"unicorn-app/utils"
 
 	"github.com/google/uuid"
 )
 
-var (
-	names                 []string
-	adjectives            []string
-	requestIdQueue        []string
-	producedUnicornsStore []Unicorn
-	requestAmountMap      map[string]int
-	requestUnicornMap     map[string][]Unicorn
-)
-
 func init() {
 	requestAmountMap = make(map[string]int)
-	requestUnicornMap = make(map[string][]Unicorn)
-}
-
-type Unicorn struct {
-	Name         string
-	Capabilities []string
+	requestUnicornMap = make(map[string][]utils.Unicorn)
 }
 
 func AddUnicornRequest(writer http.ResponseWriter, request *http.Request) {

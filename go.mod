@@ -1,4 +1,4 @@
-module unicorn
+module unicorn-app
 
 go 1.19
 
