@@ -48,8 +48,10 @@ func AddUnicornRequest(writer http.ResponseWriter, request *http.Request) {
 	requestID := uuid.New().String()
 
 	mutex.Lock()
+
 	requestIdQueue = append(requestIdQueue, requestID)
 	requestAmountMap[requestID] = amount
+
 	mutex.Unlock()
 
 	utils.ResponseJSON(
@@ -75,13 +77,13 @@ func UnicornPoll(writer http.ResponseWriter, request *http.Request) {
 
 	amount, ok := requestAmountMap[requestID]
 	if !ok {
-		utils.ResponseJSON(writer, http.StatusNotFound, "'request_id' is not exist")
+		utils.ResponseJSON(writer, http.StatusNotFound, "'request_id' does not exist")
 		return
 	}
 
 	unicorns := requestUnicornMap[requestID]
 	if len(unicorns) < amount {
-		utils.ResponseJSON(writer, http.StatusOK, "unicorn is not ready")
+		utils.ResponseJSON(writer, http.StatusAccepted, map[string]string{"message": "Unicorn is being produced. Please poll again."})
 		return
 	}
 

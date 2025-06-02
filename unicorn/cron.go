@@ -1,7 +1,6 @@
 package unicorn
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -12,18 +11,16 @@ import (
 var mutex sync.Mutex
 
 func UnicornProducer() {
-	LoadData()
+	if err := LoadData(); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 	ticker := time.NewTicker(utils.PRODUCER_TIMER_SECONDS * time.Second)
 	for range ticker.C {
 		unicorn := generateUnicorn()
 
 		mutex.Lock()
-		fmt.Println("========================BEFORE============================")
-		PrettyPrint("unicorn", unicorn)
-		PrettyPrint("requestIdQueue", requestIdQueue)
-		PrettyPrint("requestAmountMap", requestAmountMap)
-		PrettyPrint("requestUnicornMap", requestUnicornMap)
-		PrettyPrint("producedUnicornsStore", producedUnicornsStore)
 
 		if len(requestIdQueue) > 0 {
 			requestID := requestIdQueue[0]
@@ -47,11 +44,7 @@ func UnicornProducer() {
 		} else {
 			producedUnicornsStore = append(producedUnicornsStore, unicorn)
 		}
-		fmt.Println("========================AFTER============================")
-		PrettyPrint("requestIdQueue", requestIdQueue)
-		PrettyPrint("requestAmountMap", requestAmountMap)
-		PrettyPrint("requestUnicornMap", requestUnicornMap)
-		PrettyPrint("producedUnicornsStore", producedUnicornsStore)
+
 		mutex.Unlock()
 	}
 }
@@ -63,7 +56,7 @@ func generateUnicorn() Unicorn {
 	capabilitiesMap := make(map[string]bool)
 	name := fmt.Sprintf("%s-%s", adjectives[rand.Intn(len(adjectives))], names[rand.Intn(len(names))])
 
-	for len(unicornCapabilities) < 3 {
+	for len(unicornCapabilities) < utils.MAX_CAPABILITY {
 		capability := utils.Capabilities[rand.Intn(len(utils.Capabilities))]
 		if !capabilitiesMap[capability] {
 			capabilitiesMap[capability] = true
@@ -73,22 +66,18 @@ func generateUnicorn() Unicorn {
 	return Unicorn{Name: name, Capabilities: unicornCapabilities}
 }
 
-func LoadData() {
-	fmt.Println("Loading data...!")
-	var err error
-	names, err = utils.ReadFileData("petnames.txt")
+func LoadData() error {
+	nameData, err := utils.ReadFileData("petnames.txt")
 	if err != nil {
-		fmt.Println("please try later, unicorn factory unavailable")
-		return
+		return fmt.Errorf("please try later, unicorn factory unavailable")
 	}
-	adjectives, err = utils.ReadFileData("adj.txt")
-	if err != nil {
-		fmt.Println("please try later, unicorn factory unavailable")
-		return
-	}
-}
+	names = nameData
 
-func PrettyPrint(name string, v interface{}) {
-	bytes, _ := json.MarshalIndent(v, "", "  ")
-	fmt.Println(name, " ----> ", string(bytes))
+	adjData, err := utils.ReadFileData("adj.txt")
+	if err != nil {
+		return fmt.Errorf("please try later, unicorn factory unavailable")
+	}
+	adjectives = adjData
+
+	return nil
 }
