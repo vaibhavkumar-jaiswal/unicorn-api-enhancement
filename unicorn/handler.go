@@ -22,7 +22,8 @@ func AddUnicornRequest(writer http.ResponseWriter, request *http.Request) {
 
 	amountQuery := request.URL.Query().Get("amount")
 	if amountQuery == "" {
-		amountQuery = "1"
+		utils.ResponseJSON(writer, http.StatusBadRequest, "'amount' is required.")
+		return
 	}
 
 	amount, err := strconv.Atoi(amountQuery)
